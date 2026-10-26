@@ -4,6 +4,7 @@
   python3 tools/send_sd.py                  # envia tools/sdcard/mons/*.bin
   python3 tools/send_sd.py --port /dev/cu.usbmodem101
   python3 tools/send_sd.py --ls             # lista lo que hay en la SD
+  python3 tools/send_sd.py --no-shiny       # sin los ps*.bin (1.75C: no caben en la flash)
 """
 import argparse
 import glob
@@ -35,6 +36,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--port')
     ap.add_argument('--ls', action='store_true')
+    # la 1.75C guarda los sprites en ~23 MB de flash: los normales + miniaturas
+    # (~13 MB) caben, los shiny (~21 MB mas) no. Sin su fichero, un shiny se ve
+    # con el sprite normal.
+    ap.add_argument('--no-shiny', action='store_true')
     args = ap.parse_args()
 
     port = args.port or find_port()
@@ -51,6 +56,8 @@ def main():
     files = sorted(glob.glob(os.path.join(os.path.dirname(__file__), 'sdcard', 'mons', '*.bin')))
     if not files:
         sys.exit("no hay .bin; ejecuta antes tools/pack_pmd.py")
+    if args.no_shiny:
+        files = [p for p in files if not os.path.basename(p).startswith('ps')]
 
     for path in files:
         size = os.path.getsize(path)

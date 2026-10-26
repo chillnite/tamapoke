@@ -8,7 +8,7 @@ void rtcSetEpoch(uint32_t e);
 
 // PMU AXP2101: estado de la bateria
 bool batBegin();
-void pmuEnablePanel();           // enciende BLDO1 (OLED VDD 3.3V); llamar antes de gfx->begin()
+void pmuEnablePanel();           // enciende el rail del panel (BLDO1, o ALDO1 en la 1.75C); llamar antes de gfx->begin()
 int batPercent();                // 0-100, -1 si no hay bateria conectada
 bool batCharging();
 int batMillivolts();               // tension de la bateria en mV, 0 si no hay lectura

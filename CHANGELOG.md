@@ -6,6 +6,19 @@ bottom of the clock/settings screen (swipe down) and `web/manifest.json`.
 Updating from the [web installer](https://socquique.github.io/TamaPoke/web/)
 **without** ticking "Erase device" keeps your Pokémon.
 
+## [Unreleased]
+
+### Added
+
+- **ESP32-S3-Touch-AMOLED-1.75C support** (this fork's default board). Same
+  chips as the 1.75 on different pins: display/touch resets on GPIO 1/2, MCLK on
+  GPIO 16, panel rail on AXP2101 ALDO1. The 1.75C has no microSD slot, so the
+  sprites live in a ~23 MB FAT partition in its 32 MB flash (`FFat`), loaded
+  over USB with the same `PUT` protocol (`tools/send_sd.py --no-shiny`): the 151
+  normal sprites and the thumbnails fit, shinies fall back to the normal sprite.
+  It has no RTC either, so time doesn't pass while it's off. Build the original
+  1.75 with `-DBOARD_AMOLED_175`; CI compiles both. Untested on hardware yet.
+
 ## [1.17] - 2026-09-18
 
 ### Added

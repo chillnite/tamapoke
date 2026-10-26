@@ -180,7 +180,7 @@ void setup() {
   // handleTouch).
   Wire.setTimeOut(50);
 
-  // CRITICO: encender la alimentacion del panel (BLDO1=OLED VDD 3.3V) ANTES de
+  // CRITICO: encender la alimentacion del panel (BLDO1=OLED VDD 3.3V, ALDO1 en la 1.75C) ANTES de
   // inicializar el display. Si el PMU se reseteo (drenaje total), este rail
   // queda OFF y la pantalla se ve negra aunque el resto de la placa funcione.
   pmuEnablePanel();

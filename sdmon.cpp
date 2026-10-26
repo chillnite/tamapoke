@@ -1,7 +1,15 @@
 #include "sdmon.h"
 #include "pin_config.h"
 #include <FS.h>
+#if HAS_SD_SLOT
 #include <SD_MMC.h>
+#define SPRITE_FS SD_MMC
+#else
+// sin ranura TF (1.75C): los sprites viven en la particion FAT de la flash
+// (esquema app5M_fat24M_32MB, ~23 MB), con las mismas rutas /mons/...
+#include <FFat.h>
+#define SPRITE_FS FFat
+#endif
 
 bool sdReady = false;
 bool sdDirty = false;
@@ -13,10 +21,10 @@ bool PmdMon::load(uint8_t dexNum, bool shiny) {
 
   char path[28];
   snprintf(path, sizeof(path), "/mons/p%s%03u.bin", shiny ? "s" : "", dexNum);
-  File f = SD_MMC.open(path, FILE_READ);
+  File f = SPRITE_FS.open(path, FILE_READ);
   if (!f && shiny) {  // sin shiny PMD: usa el normal
     snprintf(path, sizeof(path), "/mons/p%03u.bin", dexNum);
-    f = SD_MMC.open(path, FILE_READ);
+    f = SPRITE_FS.open(path, FILE_READ);
   }
   if (!f) return false;
 
@@ -95,7 +103,7 @@ void SdThumbs::unload() {
 bool SdThumbs::load() {
   unload();  // recargar sin fugar el blob anterior
   if (!sdReady) return false;
-  File f = SD_MMC.open("/mons/thumbs.bin", FILE_READ);
+  File f = SPRITE_FS.open("/mons/thumbs.bin", FILE_READ);
   if (!f) {
     Serial.println("sin thumbs.bin (galeria sin miniaturas)");
     return false;
@@ -141,6 +149,7 @@ const uint8_t *SdThumbs::get(int16_t dex) const {
 }
 
 bool sdBegin() {
+#if HAS_SD_SLOT
   SD_MMC.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_DATA);
   sdReady = SD_MMC.begin("/sdcard", true /* modo 1-bit */, true /* formatea si no monta */);
   if (sdReady) {
@@ -149,6 +158,18 @@ bool sdBegin() {
   } else {
     Serial.println("SD no detectada (el juego usa los sprites de flash)");
   }
+#else
+  // formatea si no monta: la primera vez la particion llega en blanco
+  sdReady = FFat.begin(true);
+  if (sdReady) {
+    Serial.printf("FFat montada: %u KB libres de %u KB\n",
+                  (unsigned)((FFat.totalBytes() - FFat.usedBytes()) / 1024),
+                  (unsigned)(FFat.totalBytes() / 1024));
+    FFat.mkdir("/mons");
+  } else {
+    Serial.println("FFat no monta: falta la particion (PartitionScheme=app5M_fat24M_32MB)");
+  }
+#endif
   return sdReady;
 }
 
@@ -158,10 +179,10 @@ bool SdMon::load(uint8_t dexNum, bool shiny) {
 
   char path[24];
   snprintf(path, sizeof(path), "/mons/%s%03u.bin", shiny ? "s" : "", dexNum);
-  File f = SD_MMC.open(path, FILE_READ);
+  File f = SPRITE_FS.open(path, FILE_READ);
   if (!f && shiny) {  // sin variante shiny: usa la normal
     snprintf(path, sizeof(path), "/mons/%03u.bin", dexNum);
-    f = SD_MMC.open(path, FILE_READ);
+    f = SPRITE_FS.open(path, FILE_READ);
   }
   if (!f) {
     Serial.printf("no existe %s\n", path);
@@ -253,8 +274,8 @@ bool sdSerialCommand(const String &line) {
     // que quedo a medias lo alargaba en vez de reemplazarlo: quedaba un sprite
     // corrupto y mas grande que el original. Importa mas desde que el instalador
     // reanuda transferencias cortadas, porque reintenta justo los que fallaron.
-    if (SD_MMC.exists(path)) SD_MMC.remove(path);
-    File f = SD_MMC.open(path, FILE_WRITE);
+    if (SPRITE_FS.exists(path)) SPRITE_FS.remove(path);
+    File f = SPRITE_FS.open(path, FILE_WRITE);
     if (!f) {
       Serial.println("ERR");
       return true;
@@ -280,11 +301,12 @@ bool sdSerialCommand(const String &line) {
     Serial.println(remaining == 0 ? "DONE" : "ERR");
     return true;
   } else if (line == "SDINFO") {  // diagnostico remoto de "no me reconoce la SD"
-    Serial.printf("total=%llu used=%llu\n", SD_MMC.totalBytes(), SD_MMC.usedBytes());
+    Serial.printf("total=%llu used=%llu\n", (unsigned long long)SPRITE_FS.totalBytes(),
+                  (unsigned long long)SPRITE_FS.usedBytes());
     Serial.println("DONE");
     return true;
   } else if (line == "LS") {
-    File dir = SD_MMC.open("/mons");
+    File dir = SPRITE_FS.open("/mons");
     if (dir) {
       File e;
       while ((e = dir.openNextFile())) {

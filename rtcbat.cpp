@@ -55,8 +55,16 @@ void pmuEnablePanel() {
     Serial.println("AXP2101 no detectado (pmuEnablePanel)");
     return;
   }
+#if defined(BOARD_AMOLED_175C)
+  // En la 1.75C BLDO1 no va a ninguna parte; el ejemplo oficial de Waveshare
+  // (esp-idf/01_AXP2101) deja DCDC1 y ALDO1 a 3.3V y apaga el resto. DCDC1 es el
+  // rail de la propia ESP32 (ya encendido si estamos corriendo): solo ALDO1.
+  pmu.setALDO1Voltage(3300);
+  pmu.enableALDO1();
+#else
   pmu.setBLDO1Voltage(3300);   // OLED VDD
   pmu.enableBLDO1();
+#endif
 }
 
 // el estado de energia (I2C) se cachea ~2 s: leerlo en cada frame del loop

@@ -6,7 +6,8 @@ cd "$(dirname "$0")/.."
 FQBN="esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
 
 echo "Compilando..."
-arduino-cli compile --fqbn "$FQBN" --export-binaries .
+# el instalador web es para la 1.75 original (manifest.json, sprites en SD)
+arduino-cli compile --fqbn "$FQBN" --build-property "compiler.cpp.extra_flags=-DBOARD_AMOLED_175" --export-binaries .
 
 B=build/esp32.esp32.esp32s3
 echo "Fusionando binarios..."

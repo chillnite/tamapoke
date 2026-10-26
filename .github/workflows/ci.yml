@@ -7,8 +7,20 @@ on:
 
 jobs:
   firmware:
-    name: Compile firmware
+    name: Compile firmware (${{ matrix.board }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 1.75C (por defecto): flash de 32 MB, sprites en la particion FAT
+          - board: "1.75C"
+            fqbn: "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=32M,FlashMode=qio,PSRAM=opi,PartitionScheme=app5M_fat24M_32MB"
+            flags: ""
+          # 1.75 original: flash de 16 MB, sprites en la microSD
+          - board: "1.75"
+            fqbn: "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
+            flags: "-DBOARD_AMOLED_175"
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +42,8 @@ jobs:
       - name: Compile
         run: >
           arduino-cli compile --warnings=all
-          --fqbn "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
+          --fqbn "${{ matrix.fqbn }}"
+          --build-property "compiler.cpp.extra_flags=${{ matrix.flags }}"
           .
 
   generated:

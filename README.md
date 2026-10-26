@@ -154,9 +154,32 @@ SPEED ← minigame, DEFENSE ← 12 h of unbroken good care). *(Battles: on the r
 
 ```bash
 FQBN="esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
-arduino-cli compile --fqbn "$FQBN" .
+arduino-cli compile --fqbn "$FQBN" --build-property "compiler.cpp.extra_flags=-DBOARD_AMOLED_175" .
 arduino-cli upload -p /dev/cu.usbmodemXXXX --fqbn "$FQBN" .
 ```
+
+### This fork: ESP32-S3-Touch-AMOLED-1.75C
+
+This fork builds for the **1.75C** by default (`pin_config.h`; pass
+`-DBOARD_AMOLED_175` as above for the original 1.75). The 1.75C has the same
+chips on different reset/clock pins, but **no microSD slot and no RTC**, and
+32 MB of flash. So the sprites go into a ~23 MB FAT partition in flash, loaded
+over USB with the same `PUT` protocol. The 151 normal sprites + Pokédex
+thumbnails fit; the shinies don't, so a shiny shows with its normal sprite.
+Without an RTC, time doesn't pass while the board is off.
+
+- Board: **ESP32S3 Dev Module** · Flash **32MB** · Flash Mode **QIO 80MHz** ·
+  PSRAM **OPI PSRAM** · Partition Scheme **32M Flash (4.8MB APP/22MB FATFS)** ·
+  USB CDC On Boot **Enabled**
+
+```bash
+FQBN="esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=32M,FlashMode=qio,PSRAM=opi,PartitionScheme=app5M_fat24M_32MB"
+arduino-cli compile --fqbn "$FQBN" .
+arduino-cli upload -p /dev/cu.usbmodemXXXX --fqbn "$FQBN" .
+python3 tools/send_sd.py --no-shiny   # sprites into flash (~13 MB, a few minutes)
+```
+
+The web installer below is for the original 1.75 only.
 
 ### Easiest install: the web installer
 
