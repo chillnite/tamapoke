@@ -172,7 +172,12 @@ Without an RTC, time doesn't pass while the board is off.
   PSRAM **OPI PSRAM** · Partition Scheme **32M Flash (4.8MB APP/22MB FATFS)** ·
   USB CDC On Boot **Enabled**
 
+The sketch folder must be named exactly like `TamaPoke.ino` (Arduino rule), and
+this fork's repo is lowercase, so clone it into `TamaPoke/`:
+
 ```bash
+git clone -b claude/port-amoled-175c https://github.com/chillnite/tamapoke.git TamaPoke
+cd TamaPoke
 FQBN="esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=32M,FlashMode=qio,PSRAM=opi,PartitionScheme=app5M_fat24M_32MB"
 arduino-cli compile --fqbn "$FQBN" .
 arduino-cli upload -p /dev/cu.usbmodemXXXX --fqbn "$FQBN" .

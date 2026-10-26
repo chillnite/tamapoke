@@ -22,7 +22,11 @@ jobs:
             fqbn: "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB"
             flags: "-DBOARD_AMOLED_175"
     steps:
+      # arduino-cli exige que la carpeta se llame como el .ino principal: en este
+      # fork el repo es "tamapoke" (minusculas), asi que se clona en TamaPoke/
       - uses: actions/checkout@v4
+        with:
+          path: TamaPoke
 
       - name: Install arduino-cli
         uses: arduino/setup-arduino-cli@v2
@@ -44,7 +48,7 @@ jobs:
           arduino-cli compile --warnings=all
           --fqbn "${{ matrix.fqbn }}"
           --build-property "compiler.cpp.extra_flags=${{ matrix.flags }}"
-          .
+          TamaPoke
 
   generated:
     name: Generated headers up to date

@@ -27,7 +27,7 @@ arduino-cli compile --warnings=all --fqbn "$FQBN" --build-property "compiler.cpp
 bash tools/build_web.sh   # 1.75 only: compile + merge into web/firmware/tamapoke.bin + rebuild web/sprites.pak
 ```
 
-CI compiles both boards (matrix in `.github/workflows/ci.yml`). The web installer (`web/`) only targets the 1.75.
+`arduino-cli` requires the sketch folder to be named `TamaPoke` (like the `.ino`); this fork's repo is lowercase `tamapoke`, so clone into `TamaPoke/` (CI checks out with `path: TamaPoke`). CI compiles both boards (matrix in `.github/workflows/ci.yml`). The web installer (`web/`) only targets the 1.75.
 
 Host tests (no board needed; this is what CI runs):
 
